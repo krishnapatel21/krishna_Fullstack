@@ -56,7 +56,6 @@ pipeline {
                 dir('frontend') {
                     bat '''
                         start "Frontend Server" /B cmd /C "npm run preview -- --host 0.0.0.0 > frontend.log 2>&1"
-                        timeout /T 5 /NOBREAK
                     '''
                 }
             }
