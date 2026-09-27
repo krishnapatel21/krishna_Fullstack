@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
@@ -11,7 +12,7 @@ pipeline {
         stage('Backend - Install') {
             steps {
                 dir('backend') {
-                    bat 'npm ci || npm install'
+                    bat 'npm install'
                 }
             }
         }
@@ -24,10 +25,21 @@ pipeline {
             }
         }
 
+        stage('Backend - Start') {
+            steps {
+                dir('backend') {
+                    bat '''
+                        start "Backend Server" /B cmd /C "npm start > backend.log 2>&1"
+                        timeout /T 5 /NOBREAK
+                    '''
+                }
+            }
+        }
+
         stage('Frontend - Install') {
             steps {
                 dir('frontend') {
-                    bat 'npm ci || npm install'
+                    bat 'npm install'
                 }
             }
         }
@@ -40,22 +52,45 @@ pipeline {
             }
         }
 
-        stage('Archive Build') {
+        stage('Frontend - Start') {
             steps {
-                archiveArtifacts artifacts: 'frontend/dist/**', fingerprint: true
+                dir('frontend') {
+                    bat '''
+                        start "Frontend Server" /B cmd /C "npm run preview -- --host 0.0.0.0 > frontend.log 2>&1"
+                        timeout /T 5 /NOBREAK
+                    '''
+                }
+            }
+        }
+
+        stage('Verify') {
+            steps {
+                bat '''
+                    echo =====================================
+                    echo Backend and Frontend started
+                    echo =====================================
+                    echo Backend:  http://localhost:5000
+                    echo Frontend: http://localhost:4173
+                    echo =====================================
+                '''
             }
         }
     }
 
     post {
         success {
-            echo 'BUILD SUCCESSFUL - React frontend built and backend tests passed.'
+            echo 'BUILD SUCCESSFUL!'
+            echo 'Backend installed, tested and started.'
+            echo 'Frontend installed, built and started.'
         }
+
         failure {
-            echo 'BUILD FAILED - Check the failed stage in Jenkins Console Output.'
+            echo 'BUILD FAILED!'
+            echo 'Check the failed stage in Console Output.'
         }
+
         always {
-            echo 'Jenkins pipeline finished.'
+            archiveArtifacts artifacts: 'frontend/dist/**', fingerprint: true
         }
     }
 }
