@@ -25,16 +25,15 @@ pipeline {
             }
         }
 
-        stage('Backend - Start') {
-            steps {
-                dir('backend') {
-                    bat '''
-                        start "Backend Server" /B cmd /C "npm start > backend.log 2>&1"
-                        timeout /T 5 /NOBREAK
-                    '''
-                }
-            }
+       stage('Backend - Start') {
+    steps {
+        dir('backend') {
+            bat '''
+                start "" /B cmd /C "npm start > backend.log 2>&1"
+            '''
         }
+    }
+}
 
         stage('Frontend - Install') {
             steps {
